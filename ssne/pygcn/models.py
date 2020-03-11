@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from pygcn.layers import GraphConvolution
+from ssne.pygcn.layers import GraphConvolution
 
 
 class GCN(nn.Module):
@@ -41,3 +41,23 @@ class GCN(nn.Module):
         x = self.conv3(x, edge_index) 
         return x
     '''
+    
+class nGCN(nn.Module):
+    #输入参数
+    #nfeat：底层节点的参数，feature的个数
+    #nhid：隐层节点个数
+    #nclass：最终的分类数
+    def __init__(self, nfeat, nhid, nclass, dropout):
+        super(nGCN, self).__init__()
+
+        self.gc1 = GraphConvolution(nfeat, nhid)
+        self.gc2 = GraphConvolution(nhid, nclass)
+        self.dropout = dropout
+
+
+    def forward(self, x, adj):
+        #print('222')
+        x = F.relu(self.gc1(x, adj))
+        x = F.dropout(x, self.dropout, training=self.training)
+        x = self.gc2(x, adj)
+        return F.log_softmax(x, dim=1)

@@ -281,8 +281,8 @@ class kTupleV3(BasicModule):
         margin_tensor = self.config.pos_margin * (neg_r == 1).float() \
             + self.config.neg_margin * (neg_r == 0).float() + self.config.zero_margin * (neg_r == 2).float()
         # y = sign.view(-1, 1) * 100
-        y = Variable(torch.Tensor([1]).cuda())
-        return torch.sum(torch.max(Variable(torch.FloatTensor([0]).cuda()), margin_tensor + y*(pos_loss - neg_loss)))
+        y = Variable(torch.Tensor([1]))
+        return torch.sum(torch.max(Variable(torch.FloatTensor([0])), margin_tensor + y*(pos_loss - neg_loss)))
 
     def init_model_weight(self):
         #均匀分布 ~ U(−a,a)
@@ -308,16 +308,20 @@ class kTupleV3(BasicModule):
         h, r, t, sign, negs_r, negs_t = data
         sign = sign.float()
         h_emb = self.h_embedding(h).view(-1, 1, self.config.dimension)
+        print(h_emb)
         r_emb = self.r_embedding(r).view(-1, 1, self.config.dimension)
+        print(r_emb)
         # r_emb = torch.abs(self.r_embedding(r).view(-1, 1, self.config.dimension))
         t_emb = self.t_embedding(t).view(-1, 1, self.config.dimension)
+        print(t_emb)
         negs_r_emb = self.r_embedding(negs_r)
         negs_t_emb = self.t_embedding(negs_t)
         pos_score = torch.sum(self.calc(h_emb, r_emb, t_emb, sign), 2)
         neg_score = torch.sum(self.calc(h_emb, negs_r_emb, negs_t_emb, sign), 2)
-        # __import__('pdb').set_trace()
+        #__import__('pdb').set_trace()
         margin_loss = self.get_margin_split_loss(pos_score, neg_score, sign, negs_r)
-        # print margin_loss
+        print (margin_loss)
+        __import__('pdb').set_trace()
         return margin_loss
 
     def get_embedding(self):

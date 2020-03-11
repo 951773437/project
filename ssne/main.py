@@ -24,7 +24,7 @@ import networkx as nx
 import platform
 
 from pygcn.utils import load_data, accuracy
-from pygcn.models import GCN
+from pygcn.models import GCN,nGCN
 
 #pygat
 from torch.autograd import Variable
@@ -167,73 +167,73 @@ def train(**kwargs):
 
     best_eval_dict = {'f1-micro': 0.0, 'f1-macro': 0.0}
 
+    #'''
     model = GCN(nfeat=features_pos.shape[1],
             nhid=args.hidden,
             nclass= 64,
             dropout=args.dropout)
-
-    model2 = GCN(nfeat=features_neg.shape[1],
+    #'''
+    #'''
+    model2 = nGCN(nfeat=features_neg.shape[1],
             nhid=args.hidden,
             nclass= 64,
             dropout=args.dropout)
-    
+    #'''
+    '''
     model3 = GAT(nfeat=features_pos.shape[1], 
                 nhid=args.hidden, 
                 nclass=64, 
                 dropout=args.dropout, 
                 nheads=args.nb_heads, 
                 alpha=args.alpha)
-
+    '''
     optimizer = torch.optim.Adam(model.parameters(),
                        lr=args.lr, weight_decay=args.weight_decay)
     optimizer1 = torch.optim.Adam(model2.parameters(),
                        lr=args.lr, weight_decay=args.weight_decay)
-    optimizer2 = torch.optim.Adam(model3.parameters(),
-                       lr=args.lr, weight_decay=args.weight_decay)
+    #optimizer2 = torch.optim.Adam(model3.parameters(),
+                       #lr=args.lr, weight_decay=args.weight_decay)
     task = Task(train_data.G, config)
-    features,features_pos,features_neg,adj,labels = Variable(features),Variable(features_pos),Variable(features_neg), Variable(adj), Variable(labels)
-    '''
+    #features,features_pos,features_neg,adj,labels = Variable(features),Variable(features_pos),Variable(features_neg), Variable(adj), Variable(labels)
+
     #cuda config
-    if args.cuda:
-        model.cuda()
-        features = features.cuda()
-        adj = adj.cuda()
-        labels = labels.cuda()
-        idx_train = idx_train.cuda()
-        idx_val = idx_val.cuda()
-        idx_test = idx_test.cuda()
-    '''
-    '''
+    #if args.cuda:
+        #model.cuda()
+        #features = features.cuda()
+        #adj = adj.cuda()
+        #labels = labels.cuda()
+        #idx_train = idx_train.cuda()
+        #idx_val = idx_val.cuda()
+        #idx_test = idx_test.cuda()
     #pygat
-    for epoch in range(config.epochs):
-        t = time.time()
-        model3.train()
-        optimizer2.zero_grad()
-        output = model3(features, adj)
-        loss_train = F.nll_loss(output[idx_train], labels[idx_train])
-        acc_train = accuracy(output[idx_train], labels[idx_train])
-        loss_train.backward()
-        optimizer.step()
-        loss_val = F.nll_loss(output[idx_val], labels[idx_val])
-        acc_val = accuracy(output[idx_val], labels[idx_val])
-        print('Epoch: {:04d}'.format(epoch+1),
-              'loss_train: {:.4f}'.format(loss_train.data.item()),
-              'acc_train: {:.4f}'.format(acc_train.data.item()),
-              'loss_val: {:.4f}'.format(loss_val.data.item()),
-              'acc_val: {:.4f}'.format(acc_val.data.item()),
-              'time: {:.4f}s'.format(time.time() - t))
+    #for epoch in range(config.epochs):
+        #t = time.time()
+        #model3.train()
+        #optimizer2.zero_grad()
+        #output = model3(features, adj)
+        #loss_train = F.nll_loss(output[idx_train], labels[idx_train])
+        #acc_train = accuracy(output[idx_train], labels[idx_train])
+        #loss_train.backward()
+        #optimizer.step()
+        #loss_val = F.nll_loss(output[idx_val], labels[idx_val])
+        #acc_val = accuracy(output[idx_val], labels[idx_val])
+        #print('Epoch: {:04d}'.format(epoch+1),
+              #'loss_train: {:.4f}'.format(loss_train.data.item()),
+              #'acc_train: {:.4f}'.format(acc_train.data.item()),
+              #'loss_val: {:.4f}'.format(loss_val.data.item()),
+              #'acc_val: {:.4f}'.format(acc_val.data.item()),
+              #'time: {:.4f}s'.format(time.time() - t))
     
-    '''
-    #'''
-    #pytorch   
+    #pytorch
     for epoch in range(config.epochs):
+    #for epoch in range(config.epochs):
         #for epoch in range(60):
         t = time.time()
         model.train()
         optimizer.zero_grad()
         optimizer1.zero_grad()
         #__import__('pdb').set_trace()
-        output_pos = model(features_pos, adj)
+        output_pos = model(features_pos, adj_pos)
         #var.detach().numpy().savetxt("output_pos.txt",output_pos)
        # __import__('pdb').set_trace()
 
@@ -265,7 +265,7 @@ def train(**kwargs):
         #对节点符号进行符号预测
         #如ou何对节点符号进行embedding：
 
-        eval_dict = task.link_sign_pre(utils.cat_neighbor_new(
+        eval_dict = task.link_sign_pre_con(utils.cat_neighbor_new(
             train_data.G.g, output_pos, method='cat_neg'),utils.cat_neighbor_new(
             train_data.G.g, output_neg, method='cat_neg'),idx_train,idx_val,idx_test,method='concatenate')
         #print(np.all(model.get_embedding()))
@@ -388,15 +388,13 @@ def train(**kwargs):
     '''
     #3333
     config.N = train_data.G.g.number_of_nodes()
-    #print(config.N)
     model = getattr(models, config.model)(config)   # .eval()
-    #print(model)
-
+    #'''
     if torch.cuda.is_available():
         model.cuda()
         config.CUDA = True
+    '''
     train_dataloader = DataLoader(train_data, config.batch_size, shuffle=True, num_workers=config.num_workers)
-    #print(train_dataloader)
 
     optimizer = torch.optim.Adadelta(model.parameters(), lr=1.0, rho=0.95)
     #print(optimizer)
@@ -491,7 +489,7 @@ def train(**kwargs):
 
     #print(np.save(np.array(model.get_embedding())),file=f)
     f.close  #  关闭文件
-    '''
+    #'''
 
 '''
 def val(model, dataloader):

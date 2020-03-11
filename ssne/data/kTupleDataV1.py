@@ -1,5 +1,5 @@
 from torch.utils import data
-from utils.SignGraph import SignGraph
+from ssne.utils.SignGraph import SignGraph
 from math import pow
 import random
 import json

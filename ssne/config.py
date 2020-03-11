@@ -46,7 +46,7 @@ class kTupleConfig(BasicConfig):
     epochs = 60
     model = 'kTupleV3'
     CUDA = False
-    num_workers = 4
+    num_workers = 0
     split_ratio = 1.0  #分流比; 拆分比例; 分路比; 分光比; 分割率; 
     snapshoot = True
     neg_num = 2

@@ -33,7 +33,7 @@ class GraphConvolution(Module):
         #print('333')
         support = torch.mm(input, self.weight)
         #print(adj)
-        output = torch.spmm(adj, support)
+        output = torch.spmm(adj, support) + 1
         if self.bias is not None:
             return output + self.bias
         else:
@@ -43,3 +43,13 @@ class GraphConvolution(Module):
         return self.__class__.__name__ + ' (' \
                + str(self.in_features) + ' -> ' \
                + str(self.out_features) + ')'
+
+
+
+    
+    
+    
+    
+    
+    
+    

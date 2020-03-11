@@ -17,7 +17,7 @@ class SignGraph:
         self.weight = weight
         self.directed = directed
         #get labels
-        
+        print(filename)
         edge_pd = pd.read_csv(filename, sep='\t', header=None, comment='%')
         edges = np.array(edge_pd)
         #print(edges)
